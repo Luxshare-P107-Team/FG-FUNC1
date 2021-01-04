@@ -277,16 +277,30 @@ def DivideValue(dicSetting){
     }
 
     First_value = dicSetting.FirstValue
-    Second_value = 0.001
+//    Second_value = 0.001
 
-    if isString(First_value)
-        {
-          Second_value = numerify(First_value)*Second_value
-        }
+    if(First_value[0:3] == "000")
+    {
+      true_value = First_value[3:size(First_value)]
+    }
+    else if(First_value[0:2] == "00")
+    {
+        true_value = First_value[2:size(First_value)]
+    }
+    else if(First_value[0:1] == "0")
+    {
+        true_value = First_value[1:size(First_value)]
+    }
+    else
+    {
+        true_value = First_value
+    }
+    
+    Final_value = numerify(true_value)* 0.001
 
     retDict = {
         "result" : True
-        "output" : {dicSetting.output[0] : Second_value}
+        "output" : {dicSetting.output[0] : Final_value}
     }
     return retDict
 }
@@ -468,17 +482,27 @@ def LoopTestForCalculateACP1(dicSetting)
     writeCoilLog("Read from Fixture==>: " + Response +"\n",Nil,"NOW")
 
     group = Regex.groups(Response, "\\[val:(.*)\\]", 0)
+
+    //[val:00010237]  [val:00000237]
     if size(group)>0
     {
       val_value = group[0]
-      ivalue = Convert_HexStringToNumber(val_value)  
 
-      writeCoilLog("convert it the number==>: " + stringify(ivalue) +"\n",Nil,"NOW")   
+      if(val_value[0:5] == "00000")
+      {
+        ivalue = Convert_HexStringToNumber(val_value)  
 
-      TestValueFloat = 1.2 * (ivalue/4095.0)*12.5
-      SUM_Value = SUM_Value + ivalue
+        writeCoilLog("convert it the number==>: " + stringify(ivalue) +"\n",Nil,"NOW")   
 
-      atlasLogInfo("val_value is :",val_value,ivalue,SUM_Value)
+        TestValueFloat = 1.2 * (ivalue/4095.0)*12.5
+
+        SUM_Value = SUM_Value + TestValueFloat
+
+      }
+      else
+      {
+        Loopcount = Loopcount - 1
+      }
     } 
     System.sleep(0.05)
   }
@@ -488,7 +512,7 @@ def LoopTestForCalculateACP1(dicSetting)
     Avg_value = SUM_Value/Loopcount
   }
 
-  writeCoilLog("Loop 100 times got the avg ==>: " + stringify(Avg_value) +"\n",Nil,"NOW")   
+  writeCoilLog("Loop 5 times got the avg ==>: " + stringify(Avg_value) +"\n",Nil,"NOW")   
   
   retDict = {
     "result" : True
